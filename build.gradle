@@ -11,7 +11,7 @@ buildscript {
 }
 
 apply plugin: 'java'
-apply plugin: 'eclipse'
+apply plugin: 'idea'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 
@@ -25,6 +25,9 @@ repositories {
 
 
 dependencies {
-	implementation('org.springframework.boot:spring-boot-starter')
+	compile group: 'com.google.guava', name: 'guava', version: '23.5-jre'
+	compile('org.springframework.boot:spring-boot-starter-web')
+    testCompile group: 'org.testng', name: 'testng', version: '6.14.3'
+    implementation('org.springframework.boot:spring-boot-starter')
 	testImplementation('org.springframework.boot:spring-boot-starter-test')
 }
