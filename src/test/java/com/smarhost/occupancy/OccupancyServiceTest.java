@@ -38,8 +38,16 @@ public class OccupancyServiceTest {
                 new Integer(6), new Double(1054),
                 new Integer(4), new Double(189)
             },
-//            { new Integer(2), new Integer(7) },
-//            { new Integer(7), new Integer(1) }
+            {
+                new Integer(2), new Integer(7),
+                new Integer(2), new Double(583),
+                new Integer(4), new Double(189)
+            },
+            {
+                new Integer(7), new Integer(1),
+                new Integer(7), new Double(1153),
+                new Integer(1), new Double(45)
+            }
         };
     }
 
@@ -67,13 +75,14 @@ public class OccupancyServiceTest {
             e.printStackTrace();
         }
 
-        ImmutableMap<String, ImmutableMap<String, Object>> response =
+        ImmutableMap<String, ImmutableMap<String, Object>> summary =
             os.calculateSummary(premiumCount, economyCount, budgets);
 
-        ImmutableMap<String, Object> premium = response.get("premium");
+        ImmutableMap<String, Object> premium = summary.get("premium");
         Assert.assertEquals(premium.get("usage"), expectedPremiumUsage);
         Assert.assertEquals(premium.get("earnings"), expectedEarningsPremium);
-        ImmutableMap<String, Object> economy = response.get("economy");
+
+        ImmutableMap<String, Object> economy = summary.get("economy");
         Assert.assertEquals(economy.get("usage"), expectedEconomyUsage);
         Assert.assertEquals(economy.get("earnings"), expectedEarningsEconomy);
     }
