@@ -18,58 +18,75 @@ public class OccupancyService {
     public ImmutableMap<String, ImmutableMap<String, Object>> calculateSummary(
         int premiumRoomCount,
         int economyRoomCount,
-        List<Double> customerBudgets
+        List<Double> guests
     ) {
-        Map<String, List<Double>> customerByCategory = customerBudgets
+        Map<String, List<Double>> guestsByCategory = groupByCategory(guests);
+
+        List<Double> premiumGuests = guestsByCategory.get("premium");
+        Integer premiumUsage = getUsage(premiumRoomCount, premiumGuests);
+        Double premiumEarnings = getSum(premiumGuests, premiumUsage);
+
+        List<Double> economyGuests = guestsByCategory.get("economy");
+        List<Double> upgradedGuests = Collections.emptyList();
+
+        if (economyGuests.size() > economyRoomCount) {
+            if (premiumUsage < premiumRoomCount) {
+                int emptyPremiumRoomCount = premiumRoomCount - premiumUsage;
+                upgradedGuests = economyGuests.stream()
+                    .limit(emptyPremiumRoomCount)
+                    .collect(toList());
+            }
+            premiumUsage += upgradedGuests.size();
+            premiumEarnings += getSum(upgradedGuests);
+        }
+
+        Integer economyUsage = getUsage(economyRoomCount, economyGuests);
+        Double economyEarnings =
+            getSum(economyGuests, upgradedGuests.size(), economyUsage);
+
+        return new ImmutableMap.Builder<String, ImmutableMap<String, Object>>()
+            .put("premium", makeSummary(premiumUsage, premiumEarnings))
+            .put("economy", makeSummary(economyUsage, economyEarnings))
+            .build();
+    }
+
+    private double getSum(List<Double> aList) {
+        return getSum(aList, 0, aList.size());
+    }
+
+    private double getSum(List<Double> aList, Integer limit) {
+        return getSum(aList, 0, limit);
+    }
+
+    private double getSum(List<Double> aList, int skip, Integer limit) {
+        return aList.stream()
+            .skip(skip)
+            .limit(limit)
+            .mapToDouble(Double::doubleValue)
+            .sum();
+    }
+
+    private int getUsage(int roomCount, List<Double> guests) {
+        boolean emptyRooms = guests.size() < roomCount;
+        return emptyRooms ? guests.size() : roomCount;
+    }
+
+    private Map<String, List<Double>> groupByCategory(List<Double> guestBudgets) {
+        return guestBudgets
             .stream()
             .collect(groupingBy(
-                (Double o) -> Customer.getCategory(o),
+                (Double budget) -> Guest.getCategory(budget),
                 collectingAndThen(toList(), budgets -> sortByPriority(budgets))
             ));
+    }
 
-        List<Double> premiumCustomers = customerByCategory.get("premium");
-        boolean emptyPremiumRooms = premiumCustomers.size() < premiumRoomCount;
-        Integer premiumUsage =
-            emptyPremiumRooms ? premiumCustomers.size() : premiumRoomCount;
-        Double premiumEarnings = premiumCustomers.stream()
-            .limit(premiumUsage)
-            .mapToDouble(Double::doubleValue)
-            .sum();
-
-        List<Double> economyCustomers = customerByCategory.get("economy");
-        List<Double> upgradedCustomers = Collections.emptyList();
-        if (economyCustomers.size() > economyRoomCount) {
-            if (emptyPremiumRooms) {
-                upgradedCustomers = economyCustomers.stream()
-                    .limit(premiumRoomCount - premiumUsage)
-                    .collect(toList());
-                premiumUsage += upgradedCustomers.size();
-                premiumEarnings += upgradedCustomers.stream()
-                    .mapToDouble(Double::doubleValue)
-                    .sum();
-            }
-        }
-        boolean emptyEconomyRooms = economyCustomers.size() < economyRoomCount;
-        Integer economyUsage =
-            emptyEconomyRooms ? economyCustomers.size(): economyRoomCount;
-        Double economyEarnings = economyCustomers.stream()
-            .skip(upgradedCustomers.size())
-            .limit(economyUsage)
-            .mapToDouble(Double::doubleValue)
-            .sum();
-
-        ImmutableMap<String, Object> premiumSummary = ImmutableMap.of(
-            "usage", premiumUsage,
-            "earnings", premiumEarnings
+    private ImmutableMap<String, Object> makeSummary(
+        Integer usage, Double earnings
+    ) {
+        return ImmutableMap.of(
+            "usage", usage,
+            "earnings", earnings
         );
-        ImmutableMap<String, Object> economySummary = ImmutableMap.of(
-            "usage", economyUsage,
-            "earnings", economyEarnings
-        );
-        return new ImmutableMap.Builder<String, ImmutableMap<String, Object>>()
-            .put("premium", premiumSummary)
-            .put("economy", economySummary)
-            .build();
     }
 
     private List<Double> sortByPriority(List<Double> l) {

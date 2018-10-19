@@ -53,13 +53,25 @@ public class OccupancyServiceTest {
 
     @Test(dataProvider = "summaryData")
     public void testCalculateSummary(
-        int premiumCount,
-        int economyCount,
-        int expectedPremiumUsage,
-        double expectedEarningsPremium,
-        int expectedEconomyUsage,
-        double expectedEarningsEconomy
+        int premiumCount, int economyCount,
+        int expectedPremiumUsage, double expectedEarningsPremium,
+        int expectedEconomyUsage, double expectedEarningsEconomy
     ) {
+        List guestBudgets = loadGuestBudgets();
+
+        ImmutableMap<String, ImmutableMap<String, Object>> summary =
+            os.calculateSummary(premiumCount, economyCount, guestBudgets);
+
+        ImmutableMap<String, Object> premium = summary.get("premium");
+        Assert.assertEquals(premium.get("usage"), expectedPremiumUsage);
+        Assert.assertEquals(premium.get("earnings"), expectedEarningsPremium);
+
+        ImmutableMap<String, Object> economy = summary.get("economy");
+        Assert.assertEquals(economy.get("usage"), expectedEconomyUsage);
+        Assert.assertEquals(economy.get("earnings"), expectedEarningsEconomy);
+    }
+
+    private List loadGuestBudgets() {
         ClassLoader classLoader = getClass().getClassLoader();
         File guestsFile =
             new File(classLoader.getResource("json/guests.json").getFile());
@@ -74,16 +86,6 @@ public class OccupancyServiceTest {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        ImmutableMap<String, ImmutableMap<String, Object>> summary =
-            os.calculateSummary(premiumCount, economyCount, budgets);
-
-        ImmutableMap<String, Object> premium = summary.get("premium");
-        Assert.assertEquals(premium.get("usage"), expectedPremiumUsage);
-        Assert.assertEquals(premium.get("earnings"), expectedEarningsPremium);
-
-        ImmutableMap<String, Object> economy = summary.get("economy");
-        Assert.assertEquals(economy.get("usage"), expectedEconomyUsage);
-        Assert.assertEquals(economy.get("earnings"), expectedEarningsEconomy);
+        return budgets;
     }
 }
