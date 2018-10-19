@@ -1,28 +1,20 @@
 package com.smarhost.occupancy;
 
 import com.google.common.collect.ImmutableMap;
-import org.springframework.boot.json.BasicJsonParser;
-import org.springframework.boot.json.JsonParser;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
-
-import static org.testng.Assert.*;
 
 public class OccupancyServiceTest {
 
-    private OccupancyService os;
+    private OccupancyService occupancyService;
 
     @BeforeMethod
     public void setUp(){
-        os = new OccupancyService();
+        occupancyService = new OccupancyService();
     }
 
     @DataProvider(name = "summaryData")
@@ -61,7 +53,11 @@ public class OccupancyServiceTest {
         List guestBudgets = dataUtils.loadGuestBudgets();
 
         ImmutableMap<String, ImmutableMap<String, Object>> summary =
-            os.calculateSummary(premiumCount, economyCount, guestBudgets);
+            occupancyService.calculateSummary(
+                premiumCount,
+                economyCount,
+                guestBudgets
+            );
 
         ImmutableMap<String, Object> premium = summary.get("premium");
         Assert.assertEquals(premium.get("usage"), expectedPremiumUsage);

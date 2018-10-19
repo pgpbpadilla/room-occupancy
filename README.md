@@ -10,11 +10,20 @@ and the customers' budgets.
 - JDK 8
 - Gradle
 
-## Running the app
+## Tasks
+
+- `./gradlew test` - Runs unit tests.
+- `./gradlew bootRun` - Start web app.
+- `./gradlew tasks` - List available tasks.
+
+## Testing with cURL
+
+The script tests the base scenario:
 
 ```bash
-gradle bootRun
+./test.sh
 ```
 
-Now you can query the API at: http://localhost:8080/summary?premium=3&economy=3
+See `test.json` for an example of the payload format.
+
 
