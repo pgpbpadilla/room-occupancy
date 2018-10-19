@@ -57,7 +57,8 @@ public class OccupancyServiceTest {
         int expectedPremiumUsage, double expectedEarningsPremium,
         int expectedEconomyUsage, double expectedEarningsEconomy
     ) {
-        List guestBudgets = loadGuestBudgets();
+        DataUtils dataUtils = new DataUtils();
+        List guestBudgets = dataUtils.loadGuestBudgets();
 
         ImmutableMap<String, ImmutableMap<String, Object>> summary =
             os.calculateSummary(premiumCount, economyCount, guestBudgets);
@@ -69,23 +70,5 @@ public class OccupancyServiceTest {
         ImmutableMap<String, Object> economy = summary.get("economy");
         Assert.assertEquals(economy.get("usage"), expectedEconomyUsage);
         Assert.assertEquals(economy.get("earnings"), expectedEarningsEconomy);
-    }
-
-    private List loadGuestBudgets() {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File guestsFile =
-            new File(classLoader.getResource("json/guests.json").getFile());
-
-        List budgets = null;
-
-        try {
-            JsonParser parser = new BasicJsonParser();
-            String content =
-                new String(Files.readAllBytes(Paths.get(guestsFile.toURI())));
-            budgets = parser.parseList(content);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return budgets;
     }
 }

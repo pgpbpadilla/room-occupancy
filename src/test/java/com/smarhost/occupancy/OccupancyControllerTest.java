@@ -9,17 +9,25 @@ import org.testng.annotations.Test;
 @WebAppConfiguration
 public class OccupancyControllerTest {
     private OccupancyController controller;
+    private DataUtils dataUtils;
 
     @BeforeMethod
     public void setUp() {
+        dataUtils = new DataUtils();
         OccupancyService os = new OccupancyService();
         controller = new OccupancyController(os);
     }
 
     @Test
     public void testGetSummary() {
+        ImmutableMap<String, Object> payload = ImmutableMap.of(
+            "premiumCount", 3,
+            "economyCount", 3,
+            "guests", dataUtils.loadGuestBudgets()
+        );
+
         ImmutableMap<String, ImmutableMap<String, Object>> response =
-            controller.getSummary(3, 3);
+            controller.getSummary(payload);
 
         Assert.assertNotNull(response);
         ImmutableMap<String, Object> premium = response.get("premium");
